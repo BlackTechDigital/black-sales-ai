@@ -1,5 +1,15 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { fileURLToPath } from "node:url";
+
+// Anchor private directories to this repository. A parent named "work" (as on
+// GitHub Actions) must not cause the whole application to become inaccessible.
+const privateDirectories = ["server", "supabase", "work"].map((directory) =>
+  fileURLToPath(new URL(`./${directory}/**`, import.meta.url)).replaceAll(
+    "\\",
+    "/",
+  ),
+);
 export default defineConfig({
   plugins: [react()],
   build: { outDir: "dist" },
@@ -14,9 +24,7 @@ export default defineConfig({
         "**/.env.*",
         "**/.dev.vars",
         "**/.dev.vars.*",
-        "**/server/**",
-        "**/supabase/**",
-        "**/work/**",
+        ...privateDirectories,
         "**/*.{crt,pem,key}",
       ],
     },
