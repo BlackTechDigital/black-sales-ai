@@ -4,9 +4,8 @@ const forbidden = [
   "SUPABASE_PUBLISHABLE_KEY",
   "SUPABASE_URL",
   "service_role",
-  "refresh_token",
-  "access_token",
   "@supabase/supabase-js",
+  "GoTrueClient",
 ];
 for (const file of files.filter((file) => file.endsWith(".js"))) {
   const source = await readFile(
@@ -19,5 +18,5 @@ for (const file of files.filter((file) => file.endsWith(".js"))) {
   }
 }
 console.log(
-  "Client bundle: no server credential identifiers or Supabase session implementation.",
+  "Client bundle: no server credential identifiers or Supabase SDK implementation.",
 );

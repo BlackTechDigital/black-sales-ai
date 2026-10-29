@@ -35,3 +35,9 @@ Exclusão é arquivamento reversível. Uma política de retenção, descarte def
 ## Verificação local
 
 Testes executam PostgreSQL temporário em memória, autenticação/API simuladas e navegador com HTTP simulado. Não há segredo de produção, seed comercial, migração automática, script de deploy ou integração de pagamento.
+
+## Recuperação de senha
+
+O fluxo de recuperação tem cookies e autorização separados do login do painel. A identidade é validada remotamente com Supabase Auth antes de interpretar os claims do JWT. Exige método `recovery` recente, expiração válida e correspondência do usuário/sessão ao renovar o token antes de alterar a senha. Não aceita uma sessão comum como prova de recuperação. Cookies de recuperação expiram em até 15 minutos e não são promovidos a uma sessão comercial.
+
+Senhas e provas não são registradas nem persistidas em armazenamento JavaScript. Callbacks são limpos antes da montagem do React; erros da URL e do provedor não são reproduzidos em tela. O transporte do SDK é limitado por timeout e recebe erros genéricos quando o fetch lança exceção, evitando logs internos com detalhes da requisição. Regras de origem e JSON continuam obrigatórias. Detalhes e testes em [PASSWORD_RECOVERY.md](PASSWORD_RECOVERY.md).

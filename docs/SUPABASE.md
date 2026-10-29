@@ -21,7 +21,7 @@ No Supabase Auth:
 1. Desative novos cadastros públicos e login anônimo.
 2. Habilite e-mail/senha e use as políticas de senha e limites de tentativas do projeto.
 3. Crie um usuário de homologação pelo dashboard, verificando o e-mail conforme a política da equipe.
-4. O fluxo desta etapa aceita e-mail/senha já estabelecidos. Convites, callback de confirmação e redefinição de senha pelo painel ainda não foram implementados. Gerencie esses processos pelo administrador.
+4. O login aceita e-mail/senha estabelecidos. A recuperação foi implementada em `/reset-password`; siga [PASSWORD_RECOVERY.md](PASSWORD_RECOVERY.md) para autorizar redirecionamento, configurar o template e testar. Convites e confirmação de cadastro continuam fora deste fluxo.
 5. Defina a URL local como `http://localhost:5173`. Antes de qualquer hospedagem futura, revise URLs permitidas, domínio HTTPS e política de sessão.
 
 Uma conta válida ainda não tem acesso até entrar em `app_members`. Após autorização, libere o UUID correto do usuário, nunca um UUID inventado:

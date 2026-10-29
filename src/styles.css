@@ -1417,3 +1417,37 @@ dialog > p {
   min-width: 0;
   display: contents;
 }
+
+.recovery-layout {
+  width: 100%;
+  max-width: 530px;
+  padding: 45px 24px;
+  margin: auto;
+}
+.recovery-layout h1 {
+  font-size: 25px;
+  letter-spacing: -0.7px;
+}
+.recovery-layout fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.recovery-login {
+  display: inline-flex;
+  margin-top: 20px;
+  font-size: 12px;
+}
+.button-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #347cf1;
+  border: 1px solid #4b90ff;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 12px;
+  font-weight: 650;
+  color: white;
+}

@@ -9,6 +9,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
+    public code?: string,
   ) {
     super(message);
   }
@@ -29,6 +30,12 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
         ? data.message
         : "Não foi possível concluir a operação.",
       response.status,
+      data &&
+        typeof data === "object" &&
+        "code" in data &&
+        typeof data.code === "string"
+        ? data.code
+        : undefined,
     );
   return data as T;
 }
