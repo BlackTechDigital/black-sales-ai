@@ -1,7 +1,7 @@
 name: Review checks
 on:
   pull_request:
-    branches: [main]
+    branches: [main, codex/foundation-v2]
 permissions:
   contents: read
 jobs:

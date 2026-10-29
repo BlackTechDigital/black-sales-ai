@@ -2,9 +2,11 @@ import { useState, type FormEvent } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { api } from "../api";
 import { errorText } from "../format";
+import { RecoveryRequest } from "./RecoveryRequest";
 import type { User } from "../types";
 export function Login({ onLogin }: { onLogin: (user: User) => void }) {
   const [busy, setBusy] = useState(false);
+  const [recovering, setRecovering] = useState(false);
   const [error, setError] = useState("");
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,6 +28,8 @@ export function Login({ onLogin }: { onLogin: (user: User) => void }) {
       setBusy(false);
     }
   }
+  if (recovering)
+    return <RecoveryRequest onCancel={() => setRecovering(false)} />;
   return (
     <form onSubmit={submit}>
       {error && (
@@ -55,8 +59,16 @@ export function Login({ onLogin }: { onLogin: (user: User) => void }) {
         {busy ? "Entrando…" : "Entrar no workspace"}
         <ArrowUpRight size={17} />
       </button>
+      <button
+        type="button"
+        className="text-button recovery-login"
+        onClick={() => setRecovering(true)}
+        disabled={busy}
+      >
+        Esqueci minha senha
+      </button>
       <p className="small muted">
-        Precisa de acesso ou de uma nova senha? Fale com o administrador.
+        Precisa de acesso? Fale com o administrador.
       </p>
     </form>
   );

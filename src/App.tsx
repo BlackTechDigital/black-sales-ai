@@ -14,7 +14,17 @@ import Dashboard from "./Dashboard";
 import { Brand } from "./components/Ui";
 import { Login } from "./components/Login";
 import { LegacyRecovery } from "./components/LegacyRecovery";
-export default function App() {
+import type { RecoveryEntry } from "../shared/recovery";
+import { RecoveryPage } from "./components/RecoveryPage";
+export default function App({
+  recoveryEntry = null,
+}: {
+  recoveryEntry?: RecoveryEntry | null;
+}) {
+  if (recoveryEntry) return <RecoveryPage entry={recoveryEntry} />;
+  return <WorkspaceEntry />;
+}
+function WorkspaceEntry() {
   const [session, setSession] = useState<{
     configured: boolean;
     user: User | null;

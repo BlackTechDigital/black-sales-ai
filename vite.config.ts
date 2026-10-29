@@ -16,6 +16,10 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
+    headers: {
+      "Referrer-Policy": "no-referrer",
+      "X-Content-Type-Options": "nosniff",
+    },
     fs: {
       strict: true,
       deny: [

@@ -1,11 +1,7 @@
 import { Hono, type Context } from "hono";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { HTTPException } from "hono/http-exception";
-import {
-  createClient,
-  type SupabaseClient,
-  type Session,
-} from "@supabase/supabase-js";
+import { createClient, type Session } from "@supabase/supabase-js";
 import { z } from "zod";
 import {
   leadInputSchema,
@@ -13,18 +9,10 @@ import {
   parseLegacyBackup,
 } from "../shared/leads";
 
-export interface Bindings {
-  APP_ORIGIN?: string;
-  SUPABASE_URL?: string;
-  SUPABASE_PUBLISHABLE_KEY?: string;
-  ASSETS?: { fetch(request: Request): Promise<Response> };
-}
-type ApiEnv = {
-  Bindings: Bindings;
-  Variables: { db: SupabaseClient; user: { id: string; email?: string } };
-};
+import type { ApiEnv, Bindings, ClientFactory } from "./types";
+import { registerRecoveryRoutes, RecoveryError } from "./recovery";
+export type { Bindings, ClientFactory } from "./types";
 type ApiContext = Context<ApiEnv>;
-export type ClientFactory = (env: Bindings, token?: string) => SupabaseClient;
 const columns =
   "id,company,city,sector,contact,site,status,notes,legacy_id,source,created_at,updated_at,deleted_at,version";
 const uuid = z.uuid();
@@ -61,16 +49,43 @@ function configured(env: Bindings): boolean {
     return false;
   }
 }
-const defaultClient: ClientFactory = (env, token) =>
+const defaultClient: ClientFactory = (env, token, recoveryStorage) =>
   createClient(env.SUPABASE_URL!, env.SUPABASE_PUBLISHABLE_KEY!, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
       detectSessionInUrl: false,
+      debug: false,
+      ...(recoveryStorage
+        ? {
+            persistSession: true,
+            flowType: "pkce" as const,
+            storageKey: "black-sales-recovery",
+            storage: recoveryStorage,
+          }
+        : {}),
     },
-    global: token
-      ? { headers: { Authorization: `Bearer ${token}` } }
-      : undefined,
+    global: {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      fetch: async (input, init) => {
+        try {
+          const timeout = AbortSignal.timeout(15_000);
+          return await fetch(input, {
+            ...init,
+            signal: init?.signal
+              ? AbortSignal.any([init.signal, timeout])
+              : timeout,
+          });
+        } catch {
+          // auth-js logs thrown fetch errors. Return a sanitized service response
+          // instead, so errors containing request details cannot expose secrets.
+          return Response.json(
+            { message: "Authentication temporarily unavailable" },
+            { status: 503 },
+          );
+        }
+      },
+    },
   });
 function cookieNames(c: ApiContext) {
   const prefix = c.env.APP_ORIGIN?.startsWith("https:") ? "__Host-" : "";
@@ -264,6 +279,12 @@ export function createApp(clientFactory: ClientFactory = defaultClient) {
     c.set("db", db);
     c.set("user", { id: check.data.user.id, email: check.data.user.email });
   }
+  registerRecoveryRoutes(app, {
+    clientFactory,
+    readJson,
+    configured,
+    clearLogin: clearSession,
+  });
   app.get("/api/session", async (c) => {
     if (!configured(c.env)) return c.json({ configured: false, user: null });
     if (!getCookie(c, cookieNames(c).access))
@@ -410,6 +431,8 @@ export function createApp(clientFactory: ClientFactory = defaultClient) {
   });
   app.notFound((c) => c.json({ message: "Operação não encontrada." }, 404));
   app.onError((error, c) => {
+    if (error instanceof RecoveryError)
+      return c.json({ message: error.message, code: error.code }, error.status);
     if (error instanceof HTTPException)
       return c.json({ message: error.message }, error.status);
     if (error instanceof z.ZodError)
@@ -434,11 +457,27 @@ export default {
       return new Response("Execute npm run dev para abrir o painel.", {
         status: 404,
       });
-    const response = await env.ASSETS.fetch(request);
+    // Keep callback credentials out of asset/cache lookup URLs. The browser still
+    // has its original location long enough for the early callback parser.
+    const assetUrl = new URL(request.url);
+    for (const key of [
+      "code",
+      "token_hash",
+      "access_token",
+      "refresh_token",
+      "error",
+      "error_code",
+      "error_description",
+      "sb_flow_id",
+    ])
+      assetUrl.searchParams.delete(key);
+    const response = await env.ASSETS.fetch(new Request(assetUrl, request));
     const headers = new Headers(response.headers);
     headers.set("X-Content-Type-Options", "nosniff");
     headers.set("X-Frame-Options", "DENY");
     headers.set("Referrer-Policy", "no-referrer");
+    if (response.headers.get("Content-Type")?.includes("text/html"))
+      headers.set("Cache-Control", "no-store");
     headers.set(
       "Content-Security-Policy",
       "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",

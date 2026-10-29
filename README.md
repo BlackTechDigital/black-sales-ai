@@ -18,6 +18,7 @@ Para conectar um Supabase já autorizado, siga [docs/SUPABASE.md](docs/SUPABASE.
 ## O que está implementado
 
 - Login com e-mail/senha, renovação de sessão e logout. Conta liberada pelo administrador; cadastro público não está implementado.
+- Recuperação de senha em `/reset-password`, com confirmação, validação no servidor e suporte a PKCE, hash e links legados. Veja [como testar em localhost:5173](docs/PASSWORD_RECOVERY.md).
 - Credenciais de integração e tokens do Supabase ficam na API. Cookies HttpOnly/Secure em HTTPS; acesso a dados protegido por RLS e vínculo de membro ativo.
 - Cadastro, edição, busca por empresa/cidade/segmento e filtro pelas quatro etapas existentes.
 - Exclusão confirmada para lixeira, restauração e histórico imutável de criação, alteração e exclusão lógica.
@@ -59,6 +60,7 @@ Para usar um Chromium já instalado, defina `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
 - `supabase/migrations/`: tabelas, políticas RLS, gatilhos de histórico e funções transacionais.
 - `tests/`: banco, API, validação e navegador.
 - [docs/SUPABASE.md](docs/SUPABASE.md): configuração e operação.
+- [docs/PASSWORD_RECOVERY.md](docs/PASSWORD_RECOVERY.md): configuração de e-mail e teste local da recuperação.
 - [docs/SECURITY.md](docs/SECURITY.md): limites e decisões de segurança.
 
 Pesquisa externa, análise automática, IA, mensageria, workspace compartilhado e Black CRM permanecem fora desta etapa. Cada usuário acessa apenas seus próprios registros.
