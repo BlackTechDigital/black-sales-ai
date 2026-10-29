@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createApp, type Bindings } from "../server/index";
+import { emptyBrief } from "../shared/studio";
 const env: Bindings = {
   APP_ORIGIN: "https://sales.example.test",
   SUPABASE_URL: "https://provider.example.test",
@@ -285,6 +286,161 @@ it("preserves cookies when refresh cannot reach the provider", async () => {
   const response = await request("/session");
   expect(response.status).toBe(503);
   expect(response.headers.get("set-cookie")).toBeNull();
+});
+
+describe("studio API permissions and boundaries", () => {
+  const endpoints = [
+    "/studio/projects",
+    `/studio/projects/${user.id}`,
+    `/studio/projects/${user.id}/versions`,
+    `/studio/projects/${user.id}/versions/${user.id}`,
+  ];
+  it.each(endpoints)("requires an active session for %s", async (path) => {
+    expect((await request(path, "GET", undefined, { Cookie: "" })).status).toBe(
+      401,
+    );
+    active = false;
+    expect((await request(path)).status).toBe(403);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+  it.each([
+    "/studio/projects",
+    `/studio/projects/${user.id}/briefs`,
+    `/studio/projects/${user.id}/approvals`,
+  ])("requires auth and same origin for mutation %s", async (path) => {
+    expect((await request(path, "POST", {}, { Cookie: "" })).status).toBe(401);
+    expect(
+      (
+        await request(
+          path,
+          "POST",
+          {},
+          { Origin: "https://attacker.example.test" },
+        )
+      ).status,
+    ).toBe(403);
+    active = false;
+    expect((await request(path, "POST", {})).status).toBe(403);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+  it("validates projects and delegates snapshot/owner selection to PostgreSQL", async () => {
+    const body = {
+      title: "Projeto sintético",
+      mode: "demo",
+      lead_id: null,
+      request_id: crypto.randomUUID(),
+    };
+    for (const patch of [
+      { owner_id: "forged" },
+      { mode: "opportunity" },
+      { title: "" },
+      { lead_snapshot: { company: "Invented" } },
+    ])
+      expect(
+        (await request("/studio/projects", "POST", { ...body, ...patch }))
+          .status,
+      ).toBe(400);
+    expect(rpc).not.toHaveBeenCalled();
+    expect((await request("/studio/projects", "POST", body)).status).toBe(201);
+    expect(rpc).toHaveBeenLastCalledWith("studio_create_project", {
+      p_title: body.title,
+      p_mode: "demo",
+      p_lead_id: null,
+      p_request_id: body.request_id,
+    });
+  });
+  it("rejects incomplete schema, forged actors, unsafe permissions and invalid hashes", async () => {
+    const fields = emptyBrief();
+    const body = {
+      fields,
+      expected_head_id: user.id,
+      request_id: crypto.randomUUID(),
+    };
+    expect(
+      (
+        await request(`/studio/projects/${user.id}/briefs`, "POST", {
+          ...body,
+          actor_id: user.id,
+        })
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await request(`/studio/projects/${user.id}/briefs`, "POST", {
+          ...body,
+          fields: {
+            ...fields,
+            company: { ...fields.company, public_use: true },
+          },
+        })
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await request(`/studio/projects/${user.id}/approvals`, "POST", {
+          version_id: user.id,
+          content_hash: "invalid",
+          confirm: true,
+        })
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await request(`/studio/projects/${user.id}/approvals`, "POST", {
+          version_id: user.id,
+          content_hash: "a".repeat(64),
+        })
+      ).status,
+    ).toBe(400);
+    expect(rpc).not.toHaveBeenCalled();
+    expect(
+      (await request(`/studio/projects/${user.id}/briefs`, "POST", body))
+        .status,
+    ).toBe(201);
+    expect(rpc).toHaveBeenLastCalledWith("studio_save_brief", {
+      p_id: user.id,
+      p_expected_head: user.id,
+      p_fields: fields,
+      p_request_id: body.request_id,
+    });
+  });
+  it("binds approval to a specific version/hash and sanitizes conflicts", async () => {
+    const body = {
+      version_id: user.id,
+      content_hash: "a".repeat(64),
+      confirm: true,
+    };
+    await request(`/studio/projects/${user.id}/approvals`, "POST", body);
+    expect(rpc).toHaveBeenLastCalledWith("studio_approve_brief", {
+      p_id: user.id,
+      p_version_id: user.id,
+      p_content_hash: body.content_hash,
+    });
+    rpc.mockResolvedValue({
+      data: null,
+      error: { code: "40001", message: "internal secret detail" },
+    });
+    const r = await request(
+      `/studio/projects/${user.id}/approvals`,
+      "POST",
+      body,
+    );
+    expect(r.status).toBe(409);
+    expect(await r.text()).not.toContain("secret");
+  });
+  it("validates page and version IDs without offering generation or destructive routes", async () => {
+    expect((await request("/studio/projects?offset=-1")).status).toBe(400);
+    expect(
+      (await request(`/studio/projects/${user.id}/versions/not-a-uuid`)).status,
+    ).toBe(400);
+    expect(
+      (await request(`/studio/projects/${user.id}`, "DELETE", {})).status,
+    ).toBe(404);
+    for (const endpoint of ["generate", "chat", "export", "ollama"])
+      expect((await request(`/studio/${endpoint}`, "POST", {})).status).toBe(
+        404,
+      );
+  });
 });
 
 describe("discovery API boundaries", () => {
