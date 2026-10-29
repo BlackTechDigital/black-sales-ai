@@ -4,7 +4,7 @@
 
 O frontend chama apenas a API da mesma origem. O servidor usa o SDK oficial do Supabase com a chave publishable/anon e o JWT do usuário verificado; não usa service role. JWTs e refresh tokens não aparecem no JSON nem em localStorage: ficam em cookies HttpOnly, SameSite=Strict, Path=/ e Secure com prefixo `__Host-` quando em HTTPS.
 
-A API valida `Origin` em todas as mutações, rejeita requisições cross-site e exige JSON. A implantação deve manter mesma origem e HTTPS. Requisições e erros de provedor não são registrados pela aplicação. Observabilidade externa do Worker fica desabilitada na configuração fornecida. Cabeçalhos CSP, anti-frame e anti-sniff são aplicados pelo Worker; o servidor Vite de desenvolvimento tem comportamento próprio.
+A API valida `Origin` em todas as mutações, rejeita requisições cross-site e exige JSON. A implantação deve manter mesma origem e HTTPS. Requisições e erros de provedor não são registrados pela aplicação. Observabilidade externa do Worker fica desabilitada na configuração fornecida. Cabeçalhos CSP, anti-frame e anti-sniff são aplicados pelo Worker; o servidor Vite de desenvolvimento tem comportamento próprio. A lista de bloqueio também impede servir arquivos `.env`, `.dev.vars`, chaves e diretórios de backend, migrações e trabalho.
 
 O Supabase Auth valida os tokens e controla o limite de tentativas. Não há um limitador de login em memória apresentado como proteção global. Antes de expor publicamente, revise limites de autenticação e proteção de tráfego do ambiente.
 

@@ -312,3 +312,17 @@ test("login errors are visible and logout removes the workspace", async ({
     page.getByRole("heading", { name: "Pipeline de prospecção" }),
   ).toHaveCount(0);
 });
+
+test("development server never serves credential files or backend source", async ({
+  request,
+}) => {
+  for (const path of [
+    "/.dev.vars.example",
+    "/server/index.ts",
+    "/supabase/migrations/202610290001_foundation.sql",
+  ]) {
+    const response = await request.get(path);
+    expect(response.status()).toBe(403);
+    expect(await response.text()).not.toContain("YOUR_PUBLISHABLE_OR_ANON_KEY");
+  }
+});
