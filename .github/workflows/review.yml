@@ -1,7 +1,7 @@
 name: Review checks
 on:
   pull_request:
-    branches: [main, codex/foundation-v2]
+    branches: [main, codex/foundation-v2, codex/password-recovery]
 permissions:
   contents: read
 jobs:

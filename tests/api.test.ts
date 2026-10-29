@@ -286,3 +286,120 @@ it("preserves cookies when refresh cannot reach the provider", async () => {
   expect(response.status).toBe(503);
   expect(response.headers.get("set-cookie")).toBeNull();
 });
+
+describe("discovery API boundaries", () => {
+  const records = [
+    {
+      company: "Empresa sintética",
+      city: "Passos",
+      state: "MG",
+      sector: "Serviços",
+    },
+  ];
+  const source = {
+    name: "Fonte de teste",
+    url: "",
+    collected_at: "2026-01-01T00:00:00Z",
+  };
+  it.each([
+    "/discovery",
+    "/discovery/sources",
+    "/discovery/import",
+    `/discovery/${user.id}/promote`,
+  ])("requires a verified active session for %s", async (path) => {
+    const method =
+      path.endsWith("import") || path.endsWith("promote") ? "POST" : "GET";
+    expect(
+      (
+        await request(path, method, method === "POST" ? {} : undefined, {
+          Cookie: "",
+        })
+      ).status,
+    ).toBe(401);
+    active = false;
+    expect(
+      (await request(path, method, method === "POST" ? {} : undefined)).status,
+    ).toBe(403);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+  it("reports absent providers honestly without outbound search", async () => {
+    const res = await request("/discovery/sources");
+    expect(await res.json()).toEqual({ providers: [], manual: true });
+    expect(rpc).not.toHaveBeenCalled();
+    expect(res.headers.get("cache-control")).toBe("no-store");
+  });
+  it("validates filters and import fields before database access", async () => {
+    expect((await request("/discovery?state=XX")).status).toBe(400);
+    expect((await request("/discovery?offset=-1")).status).toBe(400);
+    expect(
+      (
+        await request("/discovery/import", "POST", {
+          source,
+          records: [{ ...records[0], owner_id: user.id }],
+          commit: true,
+        })
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await request("/discovery/import", "POST", {
+          source: { ...source, collected_at: "2999-01-01T00:00:00Z" },
+          records,
+          commit: true,
+        })
+      ).status,
+    ).toBe(400);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+  it("separates preview, commit and human promotion with strict payloads", async () => {
+    await request("/discovery/import", "POST", {
+      source,
+      records,
+      commit: false,
+    });
+    expect(rpc).toHaveBeenLastCalledWith("import_discovery_results", {
+      p_source: source,
+      p_records: [{ ...records[0], contact: "", website: "" }],
+      p_commit: false,
+    });
+    await request("/discovery/import", "POST", {
+      source,
+      records,
+      commit: true,
+    });
+    expect(rpc.mock.lastCall?.[1].p_commit).toBe(true);
+    expect(
+      (
+        await request(`/discovery/${user.id}/promote`, "POST", {
+          owner_id: user.id,
+        })
+      ).status,
+    ).toBe(400);
+    expect(
+      (await request(`/discovery/${user.id}/promote`, "POST", {})).status,
+    ).toBe(200);
+    expect(rpc).toHaveBeenLastCalledWith("promote_discovery_result", {
+      p_id: user.id,
+    });
+  });
+  it("rejects cross-origin promotion and does not reveal database/provider details", async () => {
+    expect(
+      (
+        await request(
+          `/discovery/${user.id}/promote`,
+          "POST",
+          {},
+          { Origin: "https://attacker.example.test" },
+        )
+      ).status,
+    ).toBe(403);
+    expect(rpc).not.toHaveBeenCalled();
+    rpc.mockResolvedValue({
+      data: null,
+      error: { code: "42501", message: "sensitive database detail" },
+    });
+    const response = await request(`/discovery/${user.id}/promote`, "POST", {});
+    expect(response.status).toBe(403);
+    expect(await response.text()).not.toContain("sensitive");
+  });
+});

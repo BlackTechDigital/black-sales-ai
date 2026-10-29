@@ -12,6 +12,8 @@ A migração cria `public.app_members`, `public.leads`, `public.lead_events` e f
 
 Revise `supabase/migrations/202610290001_foundation.sql`. Após autorização explícita para esse banco, aplique o arquivo integral uma única vez pelo SQL Editor ou pelo fluxo de migração da equipe. A transação não contém comandos para apagar dados existentes.
 
+Para esta versão com descoberta, revise também `supabase/migrations/202610290002_discovery.sql` e aplique, após autorização, **depois** da fundação. Ela adiciona `discovery_results`, `discovery_origins`, RLS e funções; preserva leads e histórico existentes. Não reaplique migrações já aplicadas. O painel consulta as origens pelo PostgREST e requer essa migração integral. Veja [DISCOVERY.md](DISCOVERY.md) para a homologação local do módulo.
+
 Não execute comandos de reset nem aplique em um banco real apenas para rodar os testes deste repositório. `npm test` já valida SQL/RLS em banco temporário na memória.
 
 ## 3. Preparar autenticação restrita
@@ -73,6 +75,6 @@ Esses passos contra Supabase hospedado **não foram executados nesta entrega**. 
 
 Antes da importação, preserve o JSON v1 original. O aplicativo só adiciona dados novos e conserva a origem no banco. Exclusões são lógicas; use **Lixeira > Restaurar** para recuperá-las.
 
-A exportação v1 contém apenas registros ativos, sem eventos e sem lixeira. Para uma recuperação completa, o administrador deve manter backup do banco, incluindo `app_members`, `leads`, `lead_events` e o mapeamento com os usuários do Auth. Uma restauração em outro projeto pode exigir reconciliação dos UUIDs; não force alterações de proprietário pela API.
+A exportação v1 contém apenas registros ativos, sem eventos, lixeira ou procedência da descoberta. Para uma recuperação completa, o administrador deve manter backup do banco, incluindo `app_members`, `leads`, `lead_events`, `discovery_results`, `discovery_origins` e o mapeamento com os usuários do Auth. Uma restauração em outro projeto pode exigir reconciliação dos UUIDs; não force alterações de proprietário pela API.
 
 Defina periodicidade, armazenamento protegido e teste de restauração em homologação antes de adotar o sistema em produção. O plano gratuito não deve ser tratado como garantia de disponibilidade ou backup gerenciado. Nenhum agendamento pago ou backup remoto foi configurado por esta entrega.

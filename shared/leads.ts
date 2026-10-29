@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { DiscoveryOrigin } from "./discovery";
 export const LEGACY_STORAGE_KEY = "black_sales_ai_leads_v1";
 export const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
 export const MAX_IMPORT_RECORDS = 5000;
@@ -63,6 +64,7 @@ export interface Lead extends LeadInput {
   updated_at: string;
   deleted_at: string | null;
   version: number;
+  discovery_origin?: DiscoveryOrigin | null;
 }
 export interface LeadEvent {
   id: string;

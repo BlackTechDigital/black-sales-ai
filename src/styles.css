@@ -1451,3 +1451,226 @@ dialog > p {
   font-weight: 650;
   color: white;
 }
+
+.mobile-navigation {
+  display: none;
+}
+.discovery-intro {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 27px;
+  border: 1px solid #294771;
+  border-radius: 12px;
+  background:
+    radial-gradient(ellipse at 0 0, #17417d55, transparent 75%), #0d1726;
+  margin-bottom: 22px;
+}
+.discovery-intro h2 {
+  font-size: 20px;
+  margin: 10px 0;
+}
+.discovery-intro p {
+  font-size: 12px;
+  color: #99acc9;
+  margin: 0;
+  max-width: 580px;
+}
+.discovery-orbit {
+  flex-shrink: 0;
+  color: #79adff;
+  border: 1px solid #3c659d;
+  border-radius: 50%;
+  padding: 17px;
+  background: #17345a66;
+}
+.discovery-reference {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  min-width: 130px;
+  font-size: 12px;
+  color: #c5dafa;
+}
+.discovery-reference small {
+  width: 100%;
+  margin-left: 23px;
+  color: #7891b1;
+  font-size: 10px;
+}
+.discovery-filters {
+  display: grid;
+  grid-template-columns: 1.2fr 0.6fr 1.2fr auto;
+  gap: 16px;
+  align-items: end;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.discovery-filters label {
+  margin-top: 0;
+}
+.discovery-results {
+  overflow: hidden;
+}
+.discovery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  padding: 20px;
+  border-top: 1px solid var(--line);
+}
+.discovery-card {
+  border: 1px solid #26364f;
+  background: #0b131f;
+  border-radius: 10px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.discovery-card .full {
+  margin-top: auto;
+}
+.discovery-label {
+  font-size: 9px;
+  color: #8ba5c9;
+  margin: 16px 0;
+}
+.discovery-provenance {
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 10px 0 20px;
+  border-top: 1px solid #1b2c44;
+  padding-top: 13px;
+}
+.discovery-provenance div {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin: 4px 0;
+}
+.discovery-provenance dt {
+  color: #6d88ab;
+  flex-shrink: 0;
+}
+.discovery-provenance dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+  color: #b5c6e1;
+}
+.discovery-provenance a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.discovery-url {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+.discovery-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 20px;
+  border-top: 1px solid var(--line);
+}
+.discovery-pagination > span {
+  margin-right: auto;
+}
+.discovery-fieldset {
+  padding: 0;
+  border: 0;
+  margin: 0;
+  min-width: 0;
+}
+.discovery-fieldset .list-tabs {
+  padding-left: 0;
+}
+.discovery-pair {
+  display: grid;
+  grid-template-columns: 1fr 100px;
+  gap: 14px;
+}
+.discovery-source-fields {
+  border-top: 1px solid #293a55;
+  margin-top: 22px;
+}
+.discovery-card h3,
+.discovery-card .lead-detail {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1100px) {
+  .discovery-intro {
+    flex-wrap: wrap;
+  }
+  .discovery-reference {
+    margin-left: 0;
+  }
+  .discovery-filters {
+    grid-template-columns: 1fr 100px 1fr;
+  }
+  .discovery-filters > button {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 850px) {
+  .mobile-navigation {
+    display: flex;
+    gap: 12px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .mobile-navigation a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px;
+    font-size: 11px;
+    color: #94aaca;
+    border-radius: 6px;
+  }
+  .mobile-navigation a[aria-current] {
+    background: #193052;
+    color: #b9d5ff;
+  }
+  .discovery-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .discovery-intro {
+    padding: 20px;
+    gap: 15px;
+  }
+  .discovery-intro h2 {
+    font-size: 18px;
+  }
+  .discovery-orbit {
+    padding: 12px;
+  }
+  .discovery-filters {
+    grid-template-columns: 1fr 85px;
+    gap: 12px;
+    padding: 16px;
+  }
+  .discovery-filters > div:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+  .discovery-grid {
+    padding: 12px;
+  }
+  .discovery-card {
+    padding: 17px;
+  }
+  .page-heading:has(+ .discovery-intro) {
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+}
