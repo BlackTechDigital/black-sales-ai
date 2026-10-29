@@ -16,6 +16,12 @@ O gatilho de auditoria executa com privilégios controlados para anexar snapshot
 
 A importação valida o lote inteiro e executa numa transação PostgreSQL. A prévia não grava. Restrições únicas protegem identidade e ID legado, inclusive sob concorrência. Um lock por usuário serializa importações. Conflitos não substituem dados e não geram fusões automáticas.
 
+## Descoberta manual
+
+O módulo de descoberta não acessa URLs informadas pelo usuário. O registro de adaptadores externos está vazio; não há chaves adicionais, scraping ou diagnóstico automático. Fonte e data são informações declaradas na coleta manual, sem verificação externa de veracidade. URLs aceitam apenas http/https sem credenciais.
+
+`discovery_results` e `discovery_origins` usam RLS por proprietário e membro ativo. Usuários autenticados recebem somente leitura/inserção nessas tabelas; procedência existente não pode ser alterada ou apagada. As funções são security invoker, com `search_path` vazio, e validam inclusive chamadas diretas ao banco. A adição confirma possíveis duplicatas novamente no PostgreSQL; vínculo, lead e histórico são gravados na mesma transação. A comparação é provisória, sem CNPJ, e inclui a lixeira. Detalhes e limites em [DISCOVERY.md](DISCOVERY.md).
+
 ## Dados preservados
 
 A aplicação não escreve na chave do navegador usada pela versão anterior. A recuperação baixa o conteúdo original, mesmo que ele precise de correção antes da importação. O HTML v1 fica no repositório para referência, fora dos assets distribuídos. `legacy_snapshot` conserva o objeto importado, com campos adicionais. As datas geradas representam entrada/mudança no novo sistema, sem inferir o passado.

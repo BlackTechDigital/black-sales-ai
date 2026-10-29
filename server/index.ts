@@ -11,10 +11,11 @@ import {
 
 import type { ApiEnv, Bindings, ClientFactory } from "./types";
 import { registerRecoveryRoutes, RecoveryError } from "./recovery";
+import { registerDiscoveryRoutes } from "./discovery";
 export type { Bindings, ClientFactory } from "./types";
 type ApiContext = Context<ApiEnv>;
 const columns =
-  "id,company,city,sector,contact,site,status,notes,legacy_id,source,created_at,updated_at,deleted_at,version";
+  "id,company,city,sector,contact,site,status,notes,legacy_id,source,created_at,updated_at,deleted_at,version,discovery_origin:discovery_origins(discovery_result_id,result:discovery_results(source_name,source_url,collected_at,state,website))";
 const uuid = z.uuid();
 const editSchema = z
   .object({
@@ -429,6 +430,7 @@ export function createApp(clientFactory: ClientFactory = defaultClient) {
     databaseError(result.error);
     return c.json({ summary: result.data });
   });
+  registerDiscoveryRoutes(app, { authenticate, readJson, databaseError });
   app.notFound((c) => c.json({ message: "Operação não encontrada." }, 404));
   app.onError((error, c) => {
     if (error instanceof RecoveryError)

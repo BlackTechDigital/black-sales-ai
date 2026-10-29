@@ -26,6 +26,7 @@ Para conectar um Supabase já autorizado, siga [docs/SUPABASE.md](docs/SUPABASE.
 - Rascunhos por modelo de texto e revisão antes de copiar, sem IA, envio ou mudança automática de etapa.
 - Importação JSON v1 com prévia, confirmação, deduplicação, conflitos e transação atômica.
 - Exportação dos registros ativos no formato v1, compatível com o importador.
+- Central **Descobrir empresas** em `/discover`, com filtros, importação manual revisada, procedência persistida e adição confirmada ao pipeline com verificação de possíveis duplicatas. Passos/MG é o filtro inicial; não há fonte externa ativa nem empresas pré-carregadas. Veja [docs/DISCOVERY.md](docs/DISCOVERY.md).
 
 O histórico e a lixeira não fazem parte do JSON v1: backup completo exige backup do PostgreSQL. A revisão do rascunho é local e ainda não constitui aprovação auditável para uma integração de mensagens.
 
@@ -62,5 +63,6 @@ Para usar um Chromium já instalado, defina `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
 - [docs/SUPABASE.md](docs/SUPABASE.md): configuração e operação.
 - [docs/PASSWORD_RECOVERY.md](docs/PASSWORD_RECOVERY.md): configuração de e-mail e teste local da recuperação.
 - [docs/SECURITY.md](docs/SECURITY.md): limites e decisões de segurança.
+- [docs/DISCOVERY.md](docs/DISCOVERY.md): configuração, importação e teste local da central de descoberta.
 
 Pesquisa externa, análise automática, IA, mensageria, workspace compartilhado e Black CRM permanecem fora desta etapa. Cada usuário acessa apenas seus próprios registros.
