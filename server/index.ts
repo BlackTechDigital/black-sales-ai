@@ -12,6 +12,7 @@ import {
 import type { ApiEnv, Bindings, ClientFactory } from "./types";
 import { registerRecoveryRoutes, RecoveryError } from "./recovery";
 import { registerDiscoveryRoutes } from "./discovery";
+import { registerStudioRoutes } from "./studio";
 export type { Bindings, ClientFactory } from "./types";
 type ApiContext = Context<ApiEnv>;
 const columns =
@@ -431,6 +432,7 @@ export function createApp(clientFactory: ClientFactory = defaultClient) {
     return c.json({ summary: result.data });
   });
   registerDiscoveryRoutes(app, { authenticate, readJson, databaseError });
+  registerStudioRoutes(app, { authenticate, readJson, databaseError });
   app.notFound((c) => c.json({ message: "Operação não encontrada." }, 404));
   app.onError((error, c) => {
     if (error instanceof RecoveryError)

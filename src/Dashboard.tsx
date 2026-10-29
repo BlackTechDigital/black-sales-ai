@@ -8,6 +8,7 @@ import {
   FileJson,
   History,
   LayoutDashboard,
+  PanelsTopLeft,
   LockKeyhole,
   LogOut,
   Pencil,
@@ -38,6 +39,14 @@ import { DraftModal } from "./components/DraftModal";
 import { HistoryModal } from "./components/HistoryModal";
 import { ImportModal } from "./components/ImportModal";
 import DiscoveryPage from "./DiscoveryPage";
+import StudioPage from "./studio/StudioPage";
+type WorkspacePage = "overview" | "discovery" | "studio";
+const currentPage = (): WorkspacePage =>
+  window.location.pathname === "/studio"
+    ? "studio"
+    : window.location.pathname === "/discover"
+      ? "discovery"
+      : "overview";
 export default function Dashboard({
   user,
   onLogout,
@@ -58,14 +67,26 @@ export default function Dashboard({
   const [draft, setDraft] = useState<Lead | null>(null);
   const [history, setHistory] = useState<Lead | null>(null);
   const [importing, setImporting] = useState(false);
-  const [page, setPage] = useState(
-    window.location.pathname === "/discover" ? "discovery" : "overview",
-  );
-  function navigate(next: "discovery" | "overview", pipeline = false) {
+  const [page, setPage] = useState<WorkspacePage>(currentPage);
+  const [studioDirty, setStudioDirty] = useState(false);
+  function navigate(next: WorkspacePage, pipeline = false) {
+    if (
+      page === "studio" &&
+      studioDirty &&
+      next !== page &&
+      !window.confirm("Descartar alterações não salvas do briefing?")
+    )
+      return;
     window.history.pushState(
       null,
       "",
-      next === "discovery" ? "/discover" : pipeline ? "/#pipeline" : "/",
+      next === "studio"
+        ? "/studio"
+        : next === "discovery"
+          ? "/discover"
+          : pipeline
+            ? "/#pipeline"
+            : "/",
     );
     setPage(next);
     requestAnimationFrame(() => {
@@ -77,13 +98,22 @@ export default function Dashboard({
     });
   }
   useEffect(() => {
-    const change = () =>
-      setPage(
-        window.location.pathname === "/discover" ? "discovery" : "overview",
-      );
+    const change = () => {
+      const next = currentPage();
+      if (
+        page === "studio" &&
+        studioDirty &&
+        next !== page &&
+        !window.confirm("Descartar alterações não salvas do briefing?")
+      ) {
+        window.history.pushState(null, "", "/studio");
+        return;
+      }
+      setPage(next);
+    };
     window.addEventListener("popstate", change);
     return () => window.removeEventListener("popstate", change);
-  }, []);
+  }, [page, studioDirty]);
   const alive = useRef(true);
   async function load() {
     setLoading(true);
@@ -187,6 +217,19 @@ export default function Dashboard({
           <Compass size={18} /> Descobrir empresas
         </a>
         <a
+          href="/studio"
+          className={`nav-item ${page === "studio" ? "current" : ""}`}
+          aria-current={page === "studio" ? "page" : undefined}
+          onClick={(e) => {
+            if (!e.ctrlKey && !e.metaKey) {
+              e.preventDefault();
+              navigate("studio");
+            }
+          }}
+        >
+          <PanelsTopLeft size={18} /> Creative Studio
+        </a>
+        <a
           href="/#pipeline"
           className="nav-item"
           onClick={(e) => {
@@ -214,7 +257,11 @@ export default function Dashboard({
           <span className="breadcrumb">
             Workspace <ChevronRight size={14} />
             <strong>
-              {page === "discovery" ? "Descobrir empresas" : "Visão geral"}
+              {page === "studio"
+                ? "Creative Studio"
+                : page === "discovery"
+                  ? "Descobrir empresas"
+                  : "Visão geral"}
             </strong>
           </span>
           <div className="account">
@@ -256,9 +303,25 @@ export default function Dashboard({
           >
             <Compass size={15} /> Descobrir empresas
           </a>
+          <a
+            href="/studio"
+            aria-current={page === "studio" ? "page" : undefined}
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("studio");
+            }}
+          >
+            <PanelsTopLeft size={15} /> Creative Studio
+          </a>
         </nav>
         <main id="overview">
-          {page === "discovery" ? (
+          {page === "studio" ? (
+            <StudioPage
+              leads={leads}
+              onSessionExpired={onLogout}
+              onDirtyChange={setStudioDirty}
+            />
+          ) : page === "discovery" ? (
             <DiscoveryPage
               onPipelineChanged={load}
               onOpenPipeline={() => navigate("overview", true)}

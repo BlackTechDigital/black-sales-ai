@@ -22,6 +22,12 @@ O módulo de descoberta não acessa URLs informadas pelo usuário. O registro de
 
 `discovery_results` e `discovery_origins` usam RLS por proprietário e membro ativo. Usuários autenticados recebem somente leitura/inserção nessas tabelas; procedência existente não pode ser alterada ou apagada. As funções são security invoker, com `search_path` vazio, e validam inclusive chamadas diretas ao banco. A adição confirma possíveis duplicatas novamente no PostgreSQL; vínculo, lead e histórico são gravados na mesma transação. A comparação é provisória, sem CNPJ, e inclui a lixeira. Detalhes e limites em [DISCOVERY.md](DISCOVERY.md).
 
+## Creative Studio
+
+Projetos, versões e aprovações têm RLS por proprietário e membro ativo, com somente leitura direta para usuários. As escritas passam por RPCs security definer restritas, com `search_path` vazio, objetos qualificados e verificação explícita de `auth.uid()`, associação ativa e propriedade antes de toda gravação. Não recebem ator ou proprietário do cliente. Isso impede escrita direta que pudesse falsificar snapshot, cadeia de versões ou aprovação. Testes exercitam acesso direto e RPCs de outro usuário.
+
+O hash SHA-256 é calculado no PostgreSQL sobre todos os campos JSONB da versão. Aprovação exige a versão atual e o hash exato, com ator/data do servidor. Versões e aprovações são imutáveis e uma nova versão não herda aprovação. Uso público é registrado por campo; informações copiadas do CRM começam pendentes e privadas. Demonstrações são identificadas e não criam leads. Textos e referências são exibidos pelo React sem interpretação HTML, navegação automática ou acesso a URLs. Não há provedor ou chamada de IA nesta etapa. Veja [STUDIO.md](STUDIO.md).
+
 ## Dados preservados
 
 A aplicação não escreve na chave do navegador usada pela versão anterior. A recuperação baixa o conteúdo original, mesmo que ele precise de correção antes da importação. O HTML v1 fica no repositório para referência, fora dos assets distribuídos. `legacy_snapshot` conserva o objeto importado, com campos adicionais. As datas geradas representam entrada/mudança no novo sistema, sem inferir o passado.

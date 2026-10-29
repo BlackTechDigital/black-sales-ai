@@ -16,6 +16,8 @@ Para esta versão com descoberta, revise também `supabase/migrations/2026102900
 
 Não execute comandos de reset nem aplique em um banco real apenas para rodar os testes deste repositório. `npm test` já valida SQL/RLS em banco temporário na memória.
 
+O Creative Studio usa a migração aditiva `supabase/migrations/202610290003_studio.sql`, aplicada após as duas anteriores e somente com autorização. Ela cria `studio_projects`, `studio_brief_versions`, `studio_brief_approvals` e RPCs com verificações explícitas de proprietário/membro ativo. Não concede escrita direta nas novas tabelas. O módulo não cria buckets nem configura IA. Detalhes e roteiro de homologação em [STUDIO.md](STUDIO.md). As rotas anteriores não consultam tabelas do Studio.
+
 ## 3. Preparar autenticação restrita
 
 No Supabase Auth:
@@ -78,3 +80,5 @@ Antes da importação, preserve o JSON v1 original. O aplicativo só adiciona da
 A exportação v1 contém apenas registros ativos, sem eventos, lixeira ou procedência da descoberta. Para uma recuperação completa, o administrador deve manter backup do banco, incluindo `app_members`, `leads`, `lead_events`, `discovery_results`, `discovery_origins` e o mapeamento com os usuários do Auth. Uma restauração em outro projeto pode exigir reconciliação dos UUIDs; não force alterações de proprietário pela API.
 
 Defina periodicidade, armazenamento protegido e teste de restauração em homologação antes de adotar o sistema em produção. O plano gratuito não deve ser tratado como garantia de disponibilidade ou backup gerenciado. Nenhum agendamento pago ou backup remoto foi configurado por esta entrega.
+
+Para incluir o Creative Studio no backup completo, preserve também `studio_projects`, `studio_brief_versions` e `studio_brief_approvals`, incluindo os vínculos com usuários/oportunidades. A exportação v1 não contém projetos ou briefings.
