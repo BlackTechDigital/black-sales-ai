@@ -1,4 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(crypto, "randomUUID", {
+      value: undefined,
+      configurable: true,
+    }),
+  );
+});
 import { readFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { spawn, execFile } from "node:child_process";
@@ -444,4 +452,46 @@ test("never downloads a delayed archive after closing the selected preview", asy
   state.release();
   await expect(page.locator("iframe")).toHaveCount(0);
   await expect.poll(() => downloads.length).toBe(0);
+});
+
+test("explains absent SHA-256 without bypassing review/integrity or downloading", async ({
+  page,
+}) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(crypto, "subtle", {
+      value: undefined,
+      configurable: true,
+    }),
+  );
+  const state = await mock(page),
+    downloads: string[] = [];
+  page.on("download", (d) => downloads.push(d.suggestedFilename()));
+  await page
+    .getByRole("button", { name: "Revisar site para exportação", exact: true })
+    .click();
+  await page
+    .getByLabel("Conferi a prévia e os textos desta versão do site.", {
+      exact: true,
+    })
+    .check();
+  await page.getByLabel(/Confirmo autorização de uso público/).check();
+  await page
+    .getByRole("button", { name: "Aprovar site para exportação", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Baixar projeto ZIP", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: /Para baixar e verificar a integridade do ZIP/ }),
+  ).toBeVisible();
+  expect(state.reviews).toHaveLength(1);
+  expect(state.downloads).toBe(0);
+  expect(downloads).toEqual([]);
+  await expect(
+    page.frameLocator("iframe").getByRole("heading", {
+      name: "Uma presença digital com personalidade.",
+    }),
+  ).toBeVisible();
 });

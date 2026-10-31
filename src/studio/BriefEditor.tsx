@@ -20,6 +20,7 @@ import {
 import { approveBrief, saveBrief } from "./api";
 import { dateText, errorText } from "../format";
 import { Modal } from "../components/Ui";
+import { createRequestId } from "../request-id";
 export function BriefEditor({
   detail,
   versions,
@@ -48,7 +49,7 @@ export function BriefEditor({
   const [approving, setApproving] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [committed, setCommitted] = useState(false);
-  const request = useRef({ key: "", id: crypto.randomUUID() });
+  const request = useRef({ key: "", id: createRequestId() });
   const changes = briefChanges(version.fields, fields);
   const dirty = changes.length > 0 || editingHistory;
   const issues = approvalIssues(version.fields, project.mode);
@@ -76,7 +77,7 @@ export function BriefEditor({
         base: project.head_id,
       });
       if (request.current.key !== key)
-        request.current = { key, id: crypto.randomUUID() };
+        request.current = { key, id: createRequestId() };
       const result = await saveBrief(
         project.id,
         project.head_id,

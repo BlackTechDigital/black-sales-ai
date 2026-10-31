@@ -67,6 +67,7 @@ Para usar um Chromium já instalado, defina `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
 - [docs/SUPABASE.md](docs/SUPABASE.md): configuração e operação.
 - [docs/PASSWORD_RECOVERY.md](docs/PASSWORD_RECOVERY.md): configuração de e-mail e teste local da recuperação.
 - [docs/LOCAL_NETWORK.md](docs/LOCAL_NETWORK.md): acesso local em dois computadores com lista exata de origens, mantendo autenticação e CSRF.
+- [docs/BROWSER_COMPATIBILITY.md](docs/BROWSER_COMPATIBILITY.md): UUIDs seguros em HTTP, recuperação de erros do Studio e limites de HTTPS para exportação/clipboard.
 - [docs/SECURITY.md](docs/SECURITY.md): limites e decisões de segurança.
 - [docs/DISCOVERY.md](docs/DISCOVERY.md): configuração, importação e teste local da central de descoberta.
 - [docs/STUDIO.md](docs/STUDIO.md): tabelas, migração, segurança e teste local de projetos/briefings.

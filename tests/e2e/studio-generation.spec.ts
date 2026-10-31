@@ -1,4 +1,14 @@
 import { test, expect, type Page } from "@playwright/test";
+import { builtBrowserApp } from "../fixtures/built-browser-app";
+test.beforeEach(async ({ page }) => {
+  await builtBrowserApp(page);
+  await page.addInitScript(() => {
+    Object.defineProperty(crypto, "randomUUID", {
+      value: undefined,
+      configurable: true,
+    });
+  });
+});
 import { briefFixture } from "../fixtures/site-persistence";
 import type {
   GenerationJob,

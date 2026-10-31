@@ -40,6 +40,7 @@ import { HistoryModal } from "./components/HistoryModal";
 import { ImportModal } from "./components/ImportModal";
 import DiscoveryPage from "./DiscoveryPage";
 import StudioPage from "./studio/StudioPage";
+import { UiErrorBoundary } from "./components/UiErrorBoundary";
 type WorkspacePage = "overview" | "discovery" | "studio";
 const currentPage = (): WorkspacePage =>
   window.location.pathname === "/studio"
@@ -316,11 +317,13 @@ export default function Dashboard({
         </nav>
         <main id="overview">
           {page === "studio" ? (
-            <StudioPage
-              leads={leads}
-              onSessionExpired={onLogout}
-              onDirtyChange={setStudioDirty}
-            />
+            <UiErrorBoundary title="Não foi possível abrir o Creative Studio.">
+              <StudioPage
+                leads={leads}
+                onSessionExpired={onLogout}
+                onDirtyChange={setStudioDirty}
+              />
+            </UiErrorBoundary>
           ) : page === "discovery" ? (
             <DiscoveryPage
               onPipelineChanged={load}

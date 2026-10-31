@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createRequestId } from "../request-id";
 import {
   Globe2,
   History,
@@ -59,7 +60,7 @@ export function SiteGenerationPanel({
     [moreBusy, setMoreBusy] = useState(false);
   const alive = useRef(true),
     lock = useRef(false),
-    request = useRef({ id: crypto.randomUUID(), accepted: false });
+    request = useRef({ id: createRequestId(), accepted: false });
   const expired = useRef(onSessionExpired);
   expired.current = onSessionExpired;
   const active = history.jobs.find(
@@ -344,7 +345,7 @@ export function SiteGenerationPanel({
                 }
                 if (request.current.accepted)
                   request.current = {
-                    id: crypto.randomUUID(),
+                    id: createRequestId(),
                     accepted: false,
                   };
                 setConfirmed(false);

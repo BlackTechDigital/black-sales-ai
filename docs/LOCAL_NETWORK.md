@@ -61,7 +61,7 @@ Se o IP não abre, investigue bind, endereço e firewall. Se localhost funciona 
 
 A recuperação agora usa a origem explicitamente autorizada que iniciou a solicitação, preservando o callback do mesmo navegador. Para testar e-mail na LAN, a URL exata `http://192.168.18.7:5173/reset-password` também precisará estar autorizada no Supabase de **homologação**. Não altere configurações de produção para esse teste. Login comum com senha não depende desse redirecionamento.
 
-Esta correção cobre login, sessão e autorização de origens. Em HTTP no IP privado, o navegador não considera a página um contexto seguro: `crypto.randomUUID` e `crypto.subtle` podem estar indisponíveis. O Creative Studio e a verificação de integridade do ZIP usam essas APIs. Para o Studio completo, use localhost no PC 1 ou HTTPS local confiável nos dois PCs. Não há fallback criptográfico inseguro nem flag para desabilitar a proteção do navegador nesta alteração.
+Em HTTP no IP privado, o navegador não considera a página um contexto seguro. O Studio agora gera UUIDs com `crypto.getRandomValues` e pode abrir/criar/editar projetos mesmo sem `crypto.randomUUID`. A verificação de integridade do ZIP continua usando `crypto.subtle`, que pode faltar em HTTP: nesse caso, a prévia/revisão permanecem disponíveis, mas o download é bloqueado com orientação para HTTPS ou localhost. Não há fallback criptográfico inseguro nem flag para desabilitar a proteção do navegador. Veja [BROWSER_COMPATIBILITY.md](BROWSER_COMPATIBILITY.md) para a correção da tela preta, barreiras de erro e testes.
 
 ## Testes reproduzíveis
 

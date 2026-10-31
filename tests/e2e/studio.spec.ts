@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { test, expect, type Page } from "@playwright/test";
+import { builtBrowserApp } from "../fixtures/built-browser-app";
 import {
   emptyBrief,
   type BriefFields,
@@ -9,6 +10,9 @@ import {
 import type { Lead } from "../../shared/leads";
 // Synthetic fixtures and simulated HTTP only; no company is seeded into the app.
 const user = "22222222-2222-4222-8222-222222222222";
+test.beforeEach(async ({ page }) => {
+  await builtBrowserApp(page);
+});
 const lead: Lead = {
   id: "11111111-1111-4111-8111-111111111111",
   company: "Oportunidade sintética de teste",
@@ -460,5 +464,134 @@ test("preserves local edits on read failure, warns before navigation and removes
   ).toBeVisible();
   await expect(
     page.getByLabel("Nome da empresa *", { exact: true }),
+  ).toHaveCount(0);
+});
+
+for (const origin of [
+  "http://192.168.18.7:5173",
+  "https://studio.example.test",
+]) {
+  test(`opens Black Tech Teste, saves and creates projects without randomUUID at ${origin}`, async ({
+    page,
+  }) => {
+    await builtBrowserApp(page, origin);
+    await page.addInitScript(() => {
+      Object.defineProperty(globalThis.crypto, "randomUUID", {
+        value: undefined,
+        configurable: true,
+      });
+    });
+    const state = await mock(page),
+      id = crypto.randomUUID(),
+      v = version(id, 1);
+    state.projects.push({
+      id,
+      title: "Black Tech Teste",
+      mode: "demo",
+      lead_id: null,
+      lead_snapshot: null,
+      head_id: v.id,
+      created_at: v.created_at,
+    });
+    state.versions[id] = [v];
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    await page.goto(origin + "/studio");
+    expect(await page.evaluate(() => typeof crypto.randomUUID)).toBe(
+      "undefined",
+    );
+    expect(await page.evaluate(() => typeof crypto.getRandomValues)).toBe(
+      "function",
+    );
+    expect(await page.evaluate(() => isSecureContext)).toBe(
+      origin.startsWith("https:"),
+    );
+    await page.getByRole("button", { name: /Black Tech Teste/ }).click();
+    await expect(
+      page.getByLabel("Nome da empresa *", { exact: true }),
+    ).toBeVisible();
+    await page
+      .getByLabel("Nome da empresa *", { exact: true })
+      .fill("Empresa de regressão sintética");
+    await save(page);
+    expect(state.saves).toHaveLength(1);
+    expect(state.saves[0].request_id).toMatch(
+      /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/,
+    );
+    await createDemo(page);
+    expect(state.creates).toHaveLength(1);
+    expect(state.creates[0].request_id).toMatch(
+      /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/,
+    );
+    expect(errors).toEqual([]);
+    expect(state.unexpected).toEqual([]);
+  });
+}
+
+test("contains a render failure without losing workspace navigation, hiding error details and allowing recovery", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const original = crypto.getRandomValues.bind(crypto);
+    (window as unknown as { restoreTestRandom: () => void }).restoreTestRandom =
+      () =>
+        Object.defineProperty(crypto, "getRandomValues", {
+          value: original,
+          configurable: true,
+        });
+    Object.defineProperty(crypto, "getRandomValues", {
+      value: () => {
+        throw new Error("PRIVATE_RNG_ERROR_FIXTURE");
+      },
+      configurable: true,
+    });
+  });
+  const state = await mock(page),
+    id = crypto.randomUUID(),
+    v = version(id, 1);
+  state.projects.push({
+    id,
+    title: "Black Tech Teste",
+    mode: "demo",
+    lead_id: null,
+    lead_snapshot: null,
+    head_id: v.id,
+    created_at: v.created_at,
+  });
+  state.versions[id] = [v];
+  await page.goto("/studio");
+  await page.getByRole("button", { name: /Black Tech Teste/ }).click();
+  await expect(
+    page.getByRole("alert", { name: "Painel indisponível" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "Não foi possível abrir o Creative Studio.",
+    }),
+  ).toBeVisible();
+  expect(await page.locator("body").innerText()).not.toContain(
+    "PRIVATE_RNG_ERROR_FIXTURE",
+  );
+  await expect(
+    page
+      .getByRole("link", { name: "Visão geral", exact: true })
+      .filter({ visible: true }),
+  ).toBeVisible();
+  expect(state.saves).toHaveLength(0);
+  expect(state.approvals).toHaveLength(0);
+  await page.evaluate(() =>
+    (
+      window as unknown as { restoreTestRandom: () => void }
+    ).restoreTestRandom(),
+  );
+  await page
+    .getByRole("button", { name: "Tentar abrir novamente", exact: true })
+    .click();
+  await page.getByRole("button", { name: /Black Tech Teste/ }).click();
+  await expect(
+    page.getByLabel("Nome da empresa *", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("alert", { name: "Painel indisponível" }),
   ).toHaveCount(0);
 });

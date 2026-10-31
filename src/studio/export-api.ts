@@ -7,6 +7,10 @@ import {
 } from "../../shared/studio-export";
 const base = (project: string, version: string) =>
   `/studio/projects/${encodeURIComponent(project)}/site-preview/versions/${encodeURIComponent(version)}/export`;
+export const secureExportMessage =
+  "Para baixar e verificar a integridade do ZIP, abra o aplicativo em HTTPS ou localhost. A prévia e a revisão continuam disponíveis; a verificação de segurança não será ignorada.";
+export const canVerifySiteExport = () =>
+  typeof globalThis.crypto?.subtle?.digest === "function";
 function status(value: unknown) {
   const parsed = siteExportStatusSchema.safeParse(value);
   if (!parsed.success)
@@ -48,6 +52,8 @@ export async function downloadSiteExport(
   signal?: AbortSignal,
 ) {
   signal?.throwIfAborted();
+  if (!canVerifySiteExport())
+    throw new ApiError(secureExportMessage, 503, "secure_context_required");
   if (
     !current.can_export ||
     !current.review ||

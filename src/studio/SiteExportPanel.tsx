@@ -10,6 +10,8 @@ import {
 import { ApiError } from "../api";
 import { errorText, dateText } from "../format";
 import { Modal } from "../components/Ui";
+import { createRequestId } from "../request-id";
+import { canVerifySiteExport, secureExportMessage } from "./export-api";
 
 export function SiteExportPanel({
   projectId,
@@ -35,7 +37,7 @@ export function SiteExportPanel({
   const alive = useRef(true),
     downloadController = useRef<AbortController | null>(null),
     lock = useRef(false),
-    request = useRef({ key: "", id: crypto.randomUUID() }),
+    request = useRef({ key: "", id: createRequestId() }),
     expired = useRef(onSessionExpired);
   expired.current = onSessionExpired;
   function fail(e: unknown) {
@@ -97,7 +99,7 @@ export function SiteExportPanel({
     setNotice("");
     const key = `${v.id}:${v.document_hash}:${state.artifact_hash}:${mode}`;
     if (request.current.key !== key)
-      request.current = { key, id: crypto.randomUUID() };
+      request.current = { key, id: createRequestId() };
     try {
       const result = await reviewSiteExport(projectId, v.id, {
         document_hash: v.document_hash,
@@ -126,7 +128,7 @@ export function SiteExportPanel({
             ? "Revisão do site registrada para esta versão e estes arquivos."
             : "Solicitação de ajustes registrada. Exportação bloqueada.",
         );
-        request.current = { key: "", id: crypto.randomUUID() };
+        request.current = { key: "", id: createRequestId() };
       }
     } catch (e) {
       fail(e);
@@ -226,6 +228,11 @@ export function SiteExportPanel({
         state && (
           <>
             <p className="notice">{state.message}</p>
+            {state.enabled && !canVerifySiteExport() && (
+              <p role="status" className="notice">
+                {secureExportMessage}
+              </p>
+            )}
             {state.enabled && !matchesPreview && (
               <p role="alert" className="notice error">
                 A prévia e os arquivos mudaram. Feche e reabra a prévia antes de
@@ -270,7 +277,8 @@ export function SiteExportPanel({
                   busy ||
                   !frameReady ||
                   !matchesPreview ||
-                  !state.can_export
+                  !state.can_export ||
+                  !canVerifySiteExport()
                 }
                 onClick={() => void download()}
               >

@@ -7,6 +7,7 @@ import {
 import { createProject } from "./api";
 import { Modal } from "../components/Ui";
 import { errorText } from "../format";
+import { createRequestId } from "../request-id";
 export function NewProject({
   leads,
   onClose,
@@ -21,7 +22,7 @@ export function NewProject({
   const [lead, setLead] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const mutation = useRef({ key: "", id: crypto.randomUUID() });
+  const mutation = useRef({ key: "", id: createRequestId() });
   async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -29,7 +30,7 @@ export function NewProject({
     try {
       const key = JSON.stringify({ title, mode, lead });
       if (mutation.current.key !== key)
-        mutation.current = { key, id: crypto.randomUUID() };
+        mutation.current = { key, id: createRequestId() };
       const input = createStudioProjectSchema.safeParse({
         title,
         mode,
