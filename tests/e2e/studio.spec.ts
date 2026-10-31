@@ -127,7 +127,22 @@ async function mock(page: Page) {
         action = parts[5];
       const project = state.projects.find((p) => p.id === id)!;
       const versions = state.versions[id];
-      if (method === "GET" && action === "versions" && !parts[6])
+      if (method === "GET" && action === "site-generation")
+        data =
+          parts[6] === "eligibility"
+            ? {
+                eligible: false,
+                code: "brief_not_approved",
+                message: "A versão atual precisa de aprovação.",
+                missing_fields: [],
+                availability: {
+                  available: false,
+                  code: "disabled",
+                  message: "A geração por IA está desativada.",
+                },
+              }
+            : { jobs: [], versions: [], has_more: false };
+      else if (method === "GET" && action === "versions" && !parts[6])
         data = {
           versions: [...versions]
             .reverse()

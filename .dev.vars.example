@@ -2,3 +2,10 @@
 APP_ORIGIN=http://localhost:5173
 SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_OR_ANON_KEY
+
+# AI adapter stays disabled. No AI key, external endpoint or durable binding is
+# configured by this example. See docs/STUDIO_AI_ADAPTER.md before any activation.
+STUDIO_AI_PROVIDER=disabled
+
+# Export activation is separate from AI. Enable only after local review/testing.
+STUDIO_SITE_EXPORT_ENABLED=false

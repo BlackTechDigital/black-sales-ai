@@ -17,6 +17,8 @@ import { errorText } from "../format";
 import { listBriefVersions, listProjects, projectDetail } from "./api";
 import { NewProject } from "./NewProject";
 import { BriefEditor } from "./BriefEditor";
+import { SiteGenerationPanel } from "./SiteGenerationPanel";
+import { SitePreviewPanel } from "./SitePreviewPanel";
 export default function StudioPage({
   leads,
   onSessionExpired,
@@ -38,6 +40,7 @@ export default function StudioPage({
   const [versions, setVersions] = useState<BriefVersionMeta[]>([]);
   const [moreVersions, setMoreVersions] = useState(false);
   const [editorRevision, setEditorRevision] = useState(0);
+  const [briefDirty, setBriefDirty] = useState(false);
   const dirty = useRef(false);
   const sequence = useRef(0);
   const alive = useRef(true);
@@ -46,6 +49,7 @@ export default function StudioPage({
   const changed = useCallback(
     (value: boolean) => {
       dirty.current = value;
+      setBriefDirty(value);
       onDirtyChange(value);
     },
     [onDirtyChange],
@@ -164,11 +168,12 @@ export default function StudioPage({
           <strong>Antes de criar, entender.</strong>
           <p>
             Organize projetos, revise as informações e aprove a versão exata do
-            briefing. Geração de sites e integrações de IA serão etapas futuras.
+            briefing. Solicite a geração do site com os dados públicos
+            autorizados.
           </p>
         </div>
         <span className="foundation-badge">
-          <ShieldCheck size={14} /> Etapa 1 · Briefings
+          <ShieldCheck size={14} /> Briefings e sites
         </span>
       </div>
       {error && (
@@ -265,6 +270,20 @@ export default function StudioPage({
                   await open(detail.project.id, undefined, false);
                   await load();
                 }}
+              />
+              <SiteGenerationPanel
+                key={`site:${detail.project.id}:${detail.version.id}:${detail.version.approval?.id ?? "draft"}`}
+                detail={detail}
+                dirty={briefDirty}
+                opening={opening}
+                onSessionExpired={onSessionExpired}
+              />
+              <SitePreviewPanel
+                key={`preview:${detail.project.id}`}
+                projectId={detail.project.id}
+                briefHeadId={detail.project.head_id}
+                opening={opening}
+                onSessionExpired={onSessionExpired}
               />
             </fieldset>
           ) : opening ? (

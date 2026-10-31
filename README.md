@@ -13,7 +13,7 @@ npm run dev
 
 Abra **http://localhost:5173**. Sem configuração, a aplicação apresenta o estado de conexão pendente, sem empresas fictícias e sem gravar dados locais. O comando inicia somente processos locais; não publica nada. Não use `vite preview` isoladamente para autenticação: o painel precisa da API.
 
-Para conectar um Supabase já autorizado, siga [docs/SUPABASE.md](docs/SUPABASE.md). Nenhuma migração roda no `install`, `dev`, `test` ou `build`. Não há script de deploy.
+Para conectar um Supabase já autorizado, siga [docs/SUPABASE.md](docs/SUPABASE.md). Não há migração remota automática no `install`, `dev`, `test` ou `build`; testes de banco usam PostgreSQL temporário em memória. Não há script de deploy.
 
 ## O que está implementado
 
@@ -28,6 +28,9 @@ Para conectar um Supabase já autorizado, siga [docs/SUPABASE.md](docs/SUPABASE.
 - Exportação dos registros ativos no formato v1, compatível com o importador.
 - Central **Descobrir empresas** em `/discover`, com filtros, importação manual revisada, procedência persistida e adição confirmada ao pipeline com verificação de possíveis duplicatas. Passos/MG é o filtro inicial; não há fonte externa ativa nem empresas pré-carregadas. Veja [docs/DISCOVERY.md](docs/DISCOVERY.md).
 - **Creative Studio** em `/studio`: projetos vinculados a oportunidades ou de demonstração, 13 campos com procedência/verificação/uso público, rascunhos em versões imutáveis, revisão de alterações e aprovação por versão/hash. [Configuração e teste local](docs/STUDIO.md).
+- **Geração de sites no Studio**: elegibilidade, confirmação humana, trabalhos idempotentes, acompanhamento e histórico de versões imutáveis. IA permanece desativada sem configuração autorizada de provedor/cotas/coordenador. [Fluxo integrado e testes sem API real](docs/STUDIO_GENERATION_FLOW.md).
+- **Prévia segura no Studio**: seleção de versões salvas e simulação desktop/tablet/celular em iframe sem scripts, a partir do documento validado pelo backend. Links externos e imagens ficam desativados. [Como testar com documentos simulados](docs/STUDIO_SITE_PREVIEW.md).
+- **Exportação revisada no Studio**: aprovação humana específica da versão e dos arquivos, ZIP determinístico HTML/CSS, manifesto SHA-256 e ferramentas locais sem dependências externas. Desativada até ativação controlada. [Baixar, testar e ativar futuramente](docs/STUDIO_SITE_EXPORT.md).
 
 O histórico e a lixeira não fazem parte do JSON v1: backup completo exige backup do PostgreSQL. A revisão do rascunho é local e ainda não constitui aprovação auditável para uma integração de mensagens.
 
@@ -66,5 +69,8 @@ Para usar um Chromium já instalado, defina `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
 - [docs/SECURITY.md](docs/SECURITY.md): limites e decisões de segurança.
 - [docs/DISCOVERY.md](docs/DISCOVERY.md): configuração, importação e teste local da central de descoberta.
 - [docs/STUDIO.md](docs/STUDIO.md): tabelas, migração, segurança e teste local de projetos/briefings.
+- [docs/STUDIO_GENERATION_FLOW.md](docs/STUDIO_GENERATION_FLOW.md): endpoints, painel de geração, limitações e testes locais com simulações.
+- [docs/STUDIO_SITE_PREVIEW.md](docs/STUDIO_SITE_PREVIEW.md): renderizador confiável, isolamento, versões e testes de prévia sem consumo de API.
+- [docs/STUDIO_SITE_EXPORT.md](docs/STUDIO_SITE_EXPORT.md): revisão do site, permissões, ZIP auditável, execução local e ativação controlada.
 
-Pesquisa externa, análise automática, IA, mensageria, workspace compartilhado e Black CRM permanecem fora desta etapa. Cada usuário acessa apenas seus próprios registros.
+Pesquisa externa, análise automática de empresas, mensageria, workspace compartilhado e Black CRM permanecem fora do escopo. A geração de sites tem fluxo integrado, prévia privada e exportação manual revisada, mas chamadas externas de IA continuam desativadas até configuração autorizada. Não há executor nem publicação automática. Cada usuário acessa apenas seus próprios registros.

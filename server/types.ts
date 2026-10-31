@@ -1,5 +1,7 @@
 import type { SupabaseClient, SupportedStorage } from "@supabase/supabase-js";
-export interface Bindings {
+import type { StudioAIEnv } from "./studio-ai/config";
+export interface Bindings extends StudioAIEnv {
+  STUDIO_SITE_EXPORT_ENABLED?: string;
   APP_ORIGIN?: string;
   SUPABASE_URL?: string;
   SUPABASE_PUBLISHABLE_KEY?: string;

@@ -1,7 +1,15 @@
 name: Review checks
 on:
   pull_request:
-    branches: [main, codex/foundation-v2, codex/password-recovery, codex/company-discovery]
+    branches:
+      [
+        main,
+        codex/foundation-v2,
+        codex/password-recovery,
+        codex/company-discovery,
+        codex/studio-briefings,
+        codex/studio-site-contract,
+      ]
 permissions:
   contents: read
 jobs:
@@ -12,11 +20,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 24.19.0
           cache: npm
       - run: npm ci
       - run: npm run format:check
       - run: npm run check
+      - run: npm run test:db:concurrency
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
 # No deployment, migration, provider secrets, paid services, or production writes.

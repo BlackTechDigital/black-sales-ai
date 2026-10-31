@@ -13,6 +13,20 @@ import type { ApiEnv, Bindings, ClientFactory } from "./types";
 import { registerRecoveryRoutes, RecoveryError } from "./recovery";
 import { registerDiscoveryRoutes } from "./discovery";
 import { registerStudioRoutes } from "./studio";
+import {
+  registerStudioGenerationRoutes,
+  StudioGenerationError,
+  type GenerationDependencies,
+} from "./studio-generation";
+import {
+  registerStudioPreviewRoutes,
+  StudioPreviewError,
+  isStudioPreviewFramePath,
+  previewFrameError,
+} from "./studio-preview";
+import { registerStudioExportRoutes, StudioExportError } from "./studio-export";
+// Internal Durable Object class only; no route or binding is enabled here.
+export { StudioAIUsageGuard } from "./studio-ai/usage-guard";
 export type { Bindings, ClientFactory } from "./types";
 type ApiContext = Context<ApiEnv>;
 const columns =
@@ -196,7 +210,10 @@ function pageOffset(c: ApiContext): number {
   return offset.data;
 }
 
-export function createApp(clientFactory: ClientFactory = defaultClient) {
+export function createApp(
+  clientFactory: ClientFactory = defaultClient,
+  generation: GenerationDependencies = {},
+) {
   const app = new Hono<ApiEnv>();
   app.use("/api/*", async (c, next) => {
     c.header("Cache-Control", "no-store");
@@ -433,8 +450,26 @@ export function createApp(clientFactory: ClientFactory = defaultClient) {
   });
   registerDiscoveryRoutes(app, { authenticate, readJson, databaseError });
   registerStudioRoutes(app, { authenticate, readJson, databaseError });
+  registerStudioGenerationRoutes(app, { readJson }, generation);
+  registerStudioPreviewRoutes(app);
+  registerStudioExportRoutes(app, { readJson });
   app.notFound((c) => c.json({ message: "Operação não encontrada." }, 404));
   app.onError((error, c) => {
+    if (isStudioPreviewFramePath(c.req.path))
+      return previewFrameError(
+        c,
+        error instanceof StudioPreviewError || error instanceof HTTPException
+          ? error.status
+          : error instanceof z.ZodError
+            ? 400
+            : 503,
+      );
+    if (error instanceof StudioPreviewError)
+      return c.json({ message: error.message, code: error.code }, error.status);
+    if (error instanceof StudioExportError)
+      return c.json({ message: error.message, code: error.code }, error.status);
+    if (error instanceof StudioGenerationError)
+      return c.json({ message: error.message, code: error.code }, error.status);
     if (error instanceof RecoveryError)
       return c.json({ message: error.message, code: error.code }, error.status);
     if (error instanceof HTTPException)
@@ -454,9 +489,13 @@ export function createApp(clientFactory: ClientFactory = defaultClient) {
 }
 const api = createApp();
 export default {
-  async fetch(request: Request, env: Bindings): Promise<Response> {
+  async fetch(
+    request: Request,
+    env: Bindings,
+    ctx?: ExecutionContext,
+  ): Promise<Response> {
     if (new URL(request.url).pathname.startsWith("/api/"))
-      return api.fetch(request, env);
+      return api.fetch(request, env, ctx);
     if (!env.ASSETS)
       return new Response("Execute npm run dev para abrir o painel.", {
         status: 404,
