@@ -1,5 +1,7 @@
 # Server only. Copy to .dev.vars locally; never use VITE_ for these values.
 APP_ORIGIN=http://localhost:5173
+# Optional LOCAL development only. Exact origins; no wildcard or production use.
+# APP_LOCAL_ORIGINS='["http://192.168.18.7:5173"]'
 SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_OR_ANON_KEY
 

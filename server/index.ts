@@ -25,6 +25,7 @@ import {
   previewFrameError,
 } from "./studio-preview";
 import { registerStudioExportRoutes, StudioExportError } from "./studio-export";
+import { configuredOrigins, authorizedOrigin } from "./origins";
 // Internal Durable Object class only; no route or binding is enabled here.
 export { StudioAIUsageGuard } from "./studio-ai/usage-guard";
 export type { Bindings, ClientFactory } from "./types";
@@ -50,13 +51,9 @@ function configured(env: Bindings): boolean {
   if (!env.APP_ORIGIN || !env.SUPABASE_URL || !env.SUPABASE_PUBLISHABLE_KEY)
     return false;
   try {
-    const origin = new URL(env.APP_ORIGIN);
     const provider = new URL(env.SUPABASE_URL);
     return (
-      env.APP_ORIGIN === origin.origin &&
-      (origin.protocol === "https:" ||
-        (origin.protocol === "http:" &&
-          ["localhost", "127.0.0.1"].includes(origin.hostname))) &&
+      configuredOrigins(env) !== null &&
       (provider.protocol === "https:" ||
         (provider.protocol === "http:" &&
           ["localhost", "127.0.0.1"].includes(provider.hostname)))
@@ -225,7 +222,7 @@ export function createApp(
         throw new HTTPException(503, {
           message: "Supabase ainda não configurado no servidor.",
         });
-      if (c.req.header("origin") !== c.env.APP_ORIGIN)
+      if (!authorizedOrigin(c.env, c.req.header("origin")))
         throw new HTTPException(403, {
           message: "Origem da requisição não autorizada.",
         });

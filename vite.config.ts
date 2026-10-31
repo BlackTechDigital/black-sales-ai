@@ -32,6 +32,10 @@ export default defineConfig({
         "**/*.{crt,pem,key}",
       ],
     },
-    proxy: { "/api": "http://127.0.0.1:8787" },
+    // Preserve the browser's Origin and Host; auth/CSRF are checked by the API.
+    // The backend remains loopback-only even when Vite listens on the LAN.
+    proxy: {
+      "/api": { target: "http://127.0.0.1:8787", changeOrigin: false },
+    },
   },
 });

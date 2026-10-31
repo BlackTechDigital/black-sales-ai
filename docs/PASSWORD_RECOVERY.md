@@ -22,7 +22,7 @@ No Supabase Dashboard, em **Authentication > URL Configuration**, o responsável
 - Redirect URL: `http://localhost:5173/reset-password`.
 - Se um cliente externo usar `sb_flow_id`, também pode precisar de `http://localhost:5173/reset-password?sb_flow_id=*`. O cliente deste aplicativo usa o fluxo PKCE padrão do SDK, sem habilitar recursos experimentais.
 
-Não substitua o Site URL de um projeto de produção apenas para testar localmente. Use homologação ou peça ao responsável uma configuração adequada. Use sempre **localhost**, sem alternar para `127.0.0.1`: cookies e autorização de origem são diferentes.
+Não substitua o Site URL de um projeto de produção apenas para testar localmente. Use homologação ou peça ao responsável uma configuração adequada. Use a mesma origem ao solicitar e abrir o link: cookies e autorização são diferentes entre localhost e IP. Para homologação na LAN, veja [LOCAL_NETWORK.md](LOCAL_NETWORK.md); o callback usa a origem exata previamente autorizada, e a respectiva URL precisa estar permitida no Supabase de homologação.
 
 ## E-mail: opção recomendada
 

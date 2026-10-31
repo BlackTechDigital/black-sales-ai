@@ -56,7 +56,9 @@ SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_OR_ANON_KEY
 
 Esses valores ficam no runtime do Worker. Não crie variáveis `VITE_SUPABASE_*`, não cole chaves em React e não adicione service role ao projeto. Mesmo a chave publishable fica fora do frontend nesta implementação.
 
-`APP_ORIGIN` deve corresponder exatamente ao endereço usado no navegador, sem barra final. `localhost` e `127.0.0.1` são origens diferentes. Reinicie `npm run dev` após configurar.
+Sem origens locais adicionais, `APP_ORIGIN` deve corresponder exatamente ao endereço usado no navegador, sem barra final. `localhost` e `127.0.0.1` são origens diferentes. Reinicie `npm run dev` após configurar.
+
+Para permitir também um IP exato da rede local, preserve `APP_ORIGIN` de localhost e use a configuração opcional `APP_LOCAL_ORIGINS`, somente no backend de desenvolvimento. Veja [LOCAL_NETWORK.md](LOCAL_NETWORK.md) para os dois listeners Vite, cookies, CSRF, comandos e verificações nos dois computadores. Não configure essa exceção em produção.
 
 Para prévia do build em `http://localhost:8787`, ajuste `APP_ORIGIN` para esse endereço e execute:
 

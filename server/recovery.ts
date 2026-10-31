@@ -7,6 +7,7 @@ import type {
 } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { ApiEnv, Bindings, ClientFactory } from "./types";
+import { authorizedOrigin } from "./origins";
 import {
   recoveryPasswordSchema,
   recoveryProofSchema,
@@ -202,7 +203,7 @@ export function registerRecoveryRoutes(
       .parse(await readJson(c));
     const auth = clientFactory(c.env, undefined, pkceStorage(c, true));
     const result = await auth.auth.resetPasswordForEmail(email, {
-      redirectTo: `${c.env.APP_ORIGIN}/reset-password`,
+      redirectTo: `${authorizedOrigin(c.env, c.req.header("origin")) ?? c.env.APP_ORIGIN}/reset-password`,
     });
     if (result.error) {
       if (

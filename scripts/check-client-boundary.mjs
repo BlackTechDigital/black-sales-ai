@@ -3,6 +3,7 @@ const files = await readdir(new URL("../dist/assets/", import.meta.url));
 const forbidden = [
   "SUPABASE_PUBLISHABLE_KEY",
   "SUPABASE_URL",
+  "APP_LOCAL_ORIGINS",
   "service_role",
   "@supabase/supabase-js",
   "GoTrueClient",
