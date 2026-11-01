@@ -1,6 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 const files = await readdir(new URL("../dist/assets/", import.meta.url));
 const forbidden = [
+  "HOMOLOG_BASIC_AUTH",
   "SUPABASE_PUBLISHABLE_KEY",
   "SUPABASE_URL",
   "APP_LOCAL_ORIGINS",

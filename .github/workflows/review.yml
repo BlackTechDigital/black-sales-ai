@@ -9,6 +9,8 @@ on:
         codex/company-discovery,
         codex/studio-briefings,
         codex/studio-site-contract,
+        codex/studio-http-uuid,
+        codex/private-homologation,
       ]
 permissions:
   contents: read

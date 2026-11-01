@@ -1,5 +1,7 @@
 # Black Sales AI 2.0 — fundação
 
+Preparação privada sem Cloudflare Access: [homologação isolada com Basic Auth no Worker](docs/HOMOLOGATION.md). Nenhum deploy ou serviço foi ativado por essa preparação.
+
 Painel comercial da Black Tech com React, TypeScript e Vite, API Hono em Cloudflare Workers e integração preparada com Supabase Auth/PostgreSQL. A migração separa interface, validação, integração e regras de dados para permitir testes e manutenção. Preto e azul da versão anterior foram preservados.
 
 ## Executar localmente
